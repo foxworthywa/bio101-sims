@@ -1,0 +1,394 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Push or Shake</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --bg:#f3f6f5; --panel:#ffffff; --ink:#1c2826; --muted:#56655f; --line:#d3ddd9;
+  --accent:#2f7d69; --accent-ink:#ffffff; --na:#d4652a; --k:#7550b5; --p:#e6ae33; --p-edge:#8a6d14;
+  --pump:#3f8f7a; --pocket:#f3f6f5; --membrane:#eadfc8; --membrane-edge:#b3955b;
+  --curve:#1c2826; --well-in:#2f6fae; --well-out:#c0532a; --grid:#e3eae7;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#111917; --panel:#18221f; --ink:#e3ebe8; --muted:#9db0aa; --line:#2c3a36;
+    --accent:#5fbfa4; --accent-ink:#0d1513; --na:#f08a4b; --k:#a488e0; --p:#f2c14e; --p-edge:#b8922a;
+    --pump:#4ea88e; --pocket:#18221f; --membrane:#3b3427; --membrane-edge:#8d7747;
+    --curve:#e3ebe8; --well-in:#6fa8e0; --well-out:#ef8a5e; --grid:#243230;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#111917; --panel:#18221f; --ink:#e3ebe8; --muted:#9db0aa; --line:#2c3a36;
+  --accent:#5fbfa4; --accent-ink:#0d1513; --na:#f08a4b; --k:#a488e0; --p:#f2c14e; --p-edge:#b8922a;
+  --pump:#4ea88e; --pocket:#18221f; --membrane:#3b3427; --membrane-edge:#8d7747;
+  --curve:#e3ebe8; --well-in:#6fa8e0; --well-out:#ef8a5e; --grid:#243230;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55;padding-inline:16px;padding-block:28px 48px}
+main{max-width:980px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1{font-size:2.1rem;line-height:1.15;margin:0;text-wrap:balance}
+h2{font-size:1.35rem;margin:0;text-wrap:balance}
+p{margin:0;max-width:66ch}
+.lead{color:var(--muted);font-size:1.05rem}
+header{display:flex;flex-direction:column;gap:10px}
+.eyebrow{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700}
+section{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:16px}
+.cols{display:grid;grid-template-columns:minmax(0,1.5fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:760px){.cols{grid-template-columns:1fr}}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--bg)}
+.controls{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;gap:3px;background:var(--bg)}
+.seg button{border:0;background:transparent;color:var(--ink);font:inherit;font-size:.92rem;padding:6px 14px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.btn{font:inherit;font-size:.95rem;border:1px solid var(--accent);background:transparent;color:var(--accent);padding:7px 14px;border-radius:8px;cursor:pointer;font-weight:700}
+.btn.solid{background:var(--accent);color:var(--accent-ink)}
+.btn:hover{filter:brightness(1.08)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--p);outline-offset:2px}
+label.slider{display:flex;flex-direction:column;gap:4px;font-size:.92rem;color:var(--muted)}
+label.slider span b{color:var(--ink);font-family:var(--mono);font-weight:500}
+input[type=range]{width:100%;accent-color:var(--accent)}
+.toggle{display:flex;align-items:center;gap:8px;font-size:.95rem;cursor:pointer}
+.toggle input{width:18px;height:18px;accent-color:var(--accent)}
+.readout{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:8px}
+.readout div{border:1px solid var(--line);border-radius:8px;padding:8px 10px;display:flex;flex-direction:column}
+.readout small{color:var(--muted);font-size:.78rem;letter-spacing:.04em;text-transform:uppercase}
+.readout b{font-family:var(--mono);font-weight:500;font-size:1.35rem;font-variant-numeric:tabular-nums}
+.status{border-left:4px solid var(--accent);padding:8px 12px;background:var(--bg);border-radius:0 8px 8px 0;font-size:.98rem;min-height:3.2em}
+.note{font-size:.95rem;color:var(--muted);min-height:1.5em}
+.try{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:6px;max-width:66ch}
+.try li::marker{color:var(--accent)}
+.bars{display:flex;flex-direction:column;gap:6px;font-size:.9rem}
+.bar{display:grid;grid-template-columns:8.5em 1fr 3.2em;align-items:center;gap:8px}
+.bar .track{height:12px;border-radius:6px;background:var(--bg);border:1px solid var(--line);overflow:hidden}
+.bar .fill{height:100%;width:50%}
+.bar b{font-family:var(--mono);font-weight:500;text-align:right;font-variant-numeric:tabular-nums}
+.takeaway{border-top:1px solid var(--line);padding-top:14px}
+</style>
+
+</head>
+<body>
+<main>
+  <header>
+    <span class="eyebrow">BIO 101 · Chapter 4 · How ATP does work</span>
+    <h1>Push or shake?</h1>
+    <p class="lead">An engine works by pushing. A protein machine can't, because at its size everything is stuck in something like molasses while being shaken by an earthquake of jostling water molecules. These two simulations show how ATP powers a machine anyway.</p>
+  </header>
+
+  <section aria-labelledby="s1">
+    <h2 id="s1">1. The marble in the shaking tray</h2>
+    <p>The curve is a tray with two dips. Each dip is one shape the pump can take: <b style="color:var(--well-in)">open to the inside</b> or <b style="color:var(--well-out)">open to the outside</b>. The marble shows which shape the pump is in right now.</p>
+    <div class="cols">
+      <canvas id="c1" width="600" height="340" aria-label="An energy tray with two dips and a marble. The marble's position shows the pump's current shape."></canvas>
+      <div class="controls">
+        <div class="row" role="group" aria-label="Which world">
+          <div class="seg" id="world">
+            <button type="button" id="w-protein" aria-pressed="true">Protein world</button>
+            <button type="button" id="w-engine" aria-pressed="false">Engine world</button>
+          </div>
+        </div>
+        <div class="row">
+          <button type="button" class="btn solid" id="phos">Attach phosphate</button>
+          <button type="button" class="btn" id="push">Push the marble</button>
+        </div>
+        <label class="slider" id="shake-wrap">
+          <span>Shaking: <b id="shake-val">normal</b></span>
+          <input type="range" id="shake" min="0" max="100" value="50">
+        </label>
+        <div class="bars" aria-live="off">
+          <div class="bar"><span>Time open inside</span><div class="track"><div class="fill" id="bar-in" style="background:var(--well-in)"></div></div><b id="pct-in">50%</b></div>
+          <div class="bar"><span>Time open outside</span><div class="track"><div class="fill" id="bar-out" style="background:var(--well-out)"></div></div><b id="pct-out">50%</b></div>
+        </div>
+        <p class="note" id="note1" aria-live="polite"></p>
+      </div>
+    </div>
+    <ol class="try">
+      <li>Press <b>Attach phosphate</b>. ATP never pushes the marble. It reshapes the tray so the other dip is deeper, and the shaking carries the marble over.</li>
+      <li>Drag <b>Shaking</b> to zero, then attach or remove the phosphate. With no shaking, the marble stays stuck even when the other dip is deeper.</li>
+      <li>Switch to <b>Engine world</b> and press <b>Push the marble</b>. With momentum and no molasses, a push sends it rolling back and forth. Try the same push in protein world.</li>
+    </ol>
+  </section>
+
+  <section aria-labelledby="s2">
+    <h2 id="s2">2. The sodium–potassium pump at work</h2>
+    <p>The same tray now runs the pump. The pump accepts a phosphate only when all three sodium ions are aboard, and lets it go only when both potassium ions are aboard. Each change in what is bound reshapes the tray.</p>
+    <div class="cols">
+      <canvas id="c2" width="600" height="420" aria-label="A pump protein in a membrane, with sodium and potassium ions, and a small tray showing its current shape."></canvas>
+      <div class="controls">
+        <div class="status" id="status" aria-live="polite">Starting…</div>
+        <div class="readout">
+          <div><small>ATP used</small><b id="n-atp">0</b></div>
+          <div><small>Na⁺ out</small><b id="n-na">0</b></div>
+          <div><small>K⁺ in</small><b id="n-k">0</b></div>
+        </div>
+        <label class="toggle"><input type="checkbox" id="na-on" checked> Sodium inside the cell</label>
+        <label class="toggle"><input type="checkbox" id="atp-on" checked> ATP supply</label>
+        <label class="slider">
+          <span>Shaking: <b id="shake2-val">normal</b></span>
+          <input type="range" id="shake2" min="0" max="100" value="50">
+        </label>
+        <div class="row">
+          <button type="button" class="btn" id="reset">Reset counts</button>
+          <button type="button" class="btn" id="pause" aria-pressed="false">Pause</button>
+        </div>
+      </div>
+    </div>
+    <ol class="try">
+      <li>Turn off <b>Sodium inside the cell</b>. Does the pump keep using ATP?</li>
+      <li>Turn sodium back on and turn off <b>ATP supply</b>. Where does the pump get stuck, and why?</li>
+      <li>Set <b>Shaking</b> to zero. Plenty of sodium and ATP, yet the pump stalls. What does that tell you about where the motion comes from?</li>
+      <li>Watch the counters. Each ATP should move 3 Na⁺ out and 2 K⁺ in.</li>
+    </ol>
+    <p class="takeaway"><b>The takeaway:</b> ATP does not shove the pump. Its phosphate changes which shape is most stable, the constant shaking of molecules carries the pump into that shape, and the ions that must be aboard at each step keep the cycle in order.</p>
+  </section>
+</main>
+
+<script>
+(function(){
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  let tok = {};
+  function readTokens(){
+    const cs = getComputedStyle(document.documentElement);
+    ['bg','panel','ink','muted','line','accent','na','k','p','p-edge','pump','pocket','membrane','membrane-edge','curve','well-in','well-out','grid'].forEach(n=>tok[n]=cs.getPropertyValue('--'+n).trim());
+  }
+  readTokens();
+  try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTokens); }catch(e){}
+  new MutationObserver(readTokens).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+
+  // ---------- physics ----------
+  const H = 1.0, B = 0.45;
+  const U  = (x,t)=> H*(x*x-1)*(x*x-1) + t*x;
+  const dU = (x,t)=> 4*H*x*(x*x-1) + t;
+  function gauss(){ let u=0,v=0; while(!u)u=Math.random(); while(!v)v=Math.random(); return Math.sqrt(-2*Math.log(u))*Math.cos(2*Math.PI*v); }
+  function kTfromSlider(v){ return 0.4*(v/100); } // 0 .. 0.4 ; 50 -> 0.2
+  function shakeLabel(v){ return v===0?'none':v<30?'gentle':v<70?'normal':'violent'; }
+  function clampX(o){ if(o.x>1.75){o.x=1.75;o.v=-Math.abs(o.v)*0.5;} if(o.x<-1.75){o.x=-1.75;o.v=Math.abs(o.v)*0.5;} }
+
+  function stepProtein(o, t, kT, simTime){
+    const dt=0.002, n=Math.round(simTime/dt);
+    const s=Math.sqrt(2*kT*dt);
+    for(let i=0;i<n;i++){ o.x += -dU(o.x,t)*dt + s*gauss(); clampX(o); }
+    o.v=0;
+  }
+  function stepEngine(o, t, simTime){
+    const dt=0.002, n=Math.round(simTime/dt);
+    for(let i=0;i<n;i++){ o.v += (-dU(o.x,t) - 0.06*o.v)*dt; o.x += o.v*dt; clampX(o); }
+  }
+
+  // ---------- canvas helpers ----------
+  function fit(canvas, ratio){
+    const dpr = Math.min(window.devicePixelRatio||1, 2);
+    const w = canvas.clientWidth || canvas.width;
+    const h = Math.round(w*ratio);
+    if(canvas.width !== Math.round(w*dpr)){ canvas.width=Math.round(w*dpr); canvas.height=Math.round(h*dpr); }
+    const ctx=canvas.getContext('2d'); ctx.setTransform(dpr,0,0,dpr,0,0);
+    return {ctx,w,h};
+  }
+  function drawTray(ctx, x0,y0,w,h, t, mx, labels){
+    const xmin=-1.8,xmax=1.8, umin=-0.9, umax=2.6;
+    const X = x=> x0 + (x-xmin)/(xmax-xmin)*w;
+    const Y = u=> y0 + h - (Math.min(u,umax)-umin)/(umax-umin)*h;
+    ctx.save();
+    // fill under curve
+    ctx.beginPath(); ctx.moveTo(X(xmin), y0+h);
+    for(let i=0;i<=160;i++){ const x=xmin+(xmax-xmin)*i/160; ctx.lineTo(X(x),Y(U(x,t))); }
+    ctx.lineTo(X(xmax),y0+h); ctx.closePath(); ctx.fillStyle=tok.grid; ctx.fill();
+    // curve
+    ctx.beginPath();
+    for(let i=0;i<=160;i++){ const x=xmin+(xmax-xmin)*i/160; const px=X(x),py=Y(U(x,t)); i?ctx.lineTo(px,py):ctx.moveTo(px,py); }
+    ctx.strokeStyle=tok.curve; ctx.lineWidth=2.5; ctx.stroke();
+    if(labels){
+      ctx.font='600 13px '+getComputedStyle(document.body).fontFamily; ctx.textAlign='center';
+      ctx.fillStyle=tok['well-in']; ctx.fillText('open to the inside', X(-1), Math.min(Y(U(-1,t))+28, y0+h-6));
+      ctx.fillStyle=tok['well-out']; ctx.fillText('open to the outside', X(1), Math.min(Y(U(1,t))+28, y0+h-6));
+    }
+    // marble
+    const r = Math.max(7, w*0.022);
+    const mxc = Math.max(xmin,Math.min(xmax,mx));
+    const slope = dU(mxc,t)*(h/(umax-umin))/(w/(xmax-xmin));
+    const nx = -slope, ny = -1, nl=Math.hypot(nx,ny);
+    const px = X(mxc)+ (nx/nl)*r, py = Y(U(mxc,t)) + (ny/nl)*r;
+    ctx.beginPath(); ctx.arc(px,py,r,0,Math.PI*2);
+    ctx.fillStyle = mx<0? tok['well-in'] : tok['well-out']; ctx.fill();
+    ctx.lineWidth=2; ctx.strokeStyle=tok.panel; ctx.stroke();
+    ctx.restore();
+  }
+
+  // ---------- Sim 1 ----------
+  const c1=document.getElementById('c1');
+  const s1={x:-1,v:0,phos:false,world:'protein',fracIn:0.5, noteT:0};
+  const phosBtn=document.getElementById('phos'), pushBtn=document.getElementById('push');
+  const shake=document.getElementById('shake'), shakeVal=document.getElementById('shake-val'), shakeWrap=document.getElementById('shake-wrap');
+  const note1=document.getElementById('note1');
+  function setWorld(w){
+    s1.world=w;
+    document.getElementById('w-protein').setAttribute('aria-pressed', w==='protein');
+    document.getElementById('w-engine').setAttribute('aria-pressed', w==='engine');
+    shake.disabled = w==='engine'; shakeWrap.style.opacity = w==='engine'?0.45:1;
+    s1.v=0;
+    note1.textContent = w==='engine' ? 'Engine world: no shaking, no molasses. Things keep moving once pushed.' : 'Protein world: thick as molasses, and everything is shaking.';
+  }
+  document.getElementById('w-protein').onclick=()=>setWorld('protein');
+  document.getElementById('w-engine').onclick=()=>setWorld('engine');
+  phosBtn.onclick=()=>{ s1.phos=!s1.phos; phosBtn.textContent = s1.phos?'Remove phosphate':'Attach phosphate';
+    note1.textContent = s1.phos ? 'Phosphate attached: now the "open to the outside" dip is deeper.' : 'Phosphate removed: now the "open to the inside" dip is deeper.'; };
+  pushBtn.onclick=()=>{
+    const dir = s1.x<0?1:-1;
+    if(s1.world==='engine'){ s1.v += dir*3.2; note1.textContent='In engine world, the push carries the marble along, and it keeps rolling.'; }
+    else { s1.x += dir*0.04; note1.textContent='In protein world, the push dies out almost instantly. Only the shaking moves the marble far.'; }
+  };
+  shake.oninput=()=>{ shakeVal.textContent=shakeLabel(+shake.value); };
+  setWorld('protein'); note1.textContent='Protein world: thick as molasses, and everything is shaking.';
+
+  // ---------- Sim 2 ----------
+  const c2=document.getElementById('c2');
+  const st=document.getElementById('status');
+  const s2={x:-1, naB:0, kB:0, P:false, atp:0, na:0, k:0, flash:[]};
+  const naOn=document.getElementById('na-on'), atpOn=document.getElementById('atp-on');
+  const shake2=document.getElementById('shake2'), shake2Val=document.getElementById('shake2-val');
+  shake2.oninput=()=>{ shake2Val.textContent=shakeLabel(+shake2.value); };
+  document.getElementById('reset').onclick=()=>{ s2.atp=s2.na=s2.k=0; };
+  const pauseBtn=document.getElementById('pause');
+  let running=!reduce;
+  function setRun(r){ running=r; pauseBtn.textContent=r?'Pause':'Play'; pauseBtn.setAttribute('aria-pressed', String(!r)); }
+  pauseBtn.onclick=()=>setRun(!running);
+  setRun(running);
+  const chance = (rate,dt)=> Math.random() < 1-Math.exp(-rate*dt);
+  const free = {inside:[], outside:[]};
+  for(let i=0;i<18;i++) free.inside.push({kind:'na',u:Math.random(),v:Math.random()});
+  for(let i=0;i<7;i++) free.inside.push({kind:'k',u:Math.random(),v:Math.random()});
+  for(let i=0;i<18;i++) free.outside.push({kind:'k',u:Math.random(),v:Math.random()});
+  for(let i=0;i<12;i++) free.outside.push({kind:'na',u:Math.random(),v:Math.random()});
+
+  function chem(dt){
+    const inside = s2.x < -0.35, outside = s2.x > 0.35;
+    if(!s2.P && inside){
+      if(s2.kB>0 && chance(5,dt)){ s2.kB--; s2.k++; s2.flash.push({kind:'k',side:'in',t:0}); }
+      if(s2.kB===0 && s2.naB<3 && naOn.checked && chance(3.5,dt)) s2.naB++;
+      if(s2.kB===0 && s2.naB===3 && atpOn.checked && chance(2.5,dt)){ s2.P=true; s2.atp++; s2.flash.push({kind:'adp',side:'in',t:0}); }
+    }
+    if(s2.P && outside){
+      if(s2.naB>0 && chance(6,dt)){ s2.naB--; s2.na++; s2.flash.push({kind:'na',side:'out',t:0}); }
+      if(s2.naB===0 && s2.kB<2 && chance(3.5,dt)) s2.kB++;
+      if(s2.kB===2 && chance(2.5,dt)){ s2.P=false; s2.flash.push({kind:'pi',side:'in',t:0}); }
+    }
+  }
+  function statusText(){
+    const inside = s2.x<0;
+    if(+shake2.value===0) return '<b>No shaking.</b> Whatever is bound, the pump cannot change shape, so it is frozen.';
+    if(!s2.P && inside && s2.kB>0) return 'Open to the inside: releasing potassium into the cell.';
+    if(!s2.P && inside && s2.naB<3) return naOn.checked ? `Open to the inside: waiting for sodium (<b>${s2.naB} of 3</b> aboard). No ATP can be used until all three arrive.` : `Open to the inside: <b>no sodium is arriving</b>, so the pump cannot accept a phosphate. ATP use stops.`;
+    if(!s2.P && inside && s2.naB===3) return atpOn.checked ? 'All 3 Na⁺ aboard: taking a phosphate from ATP.' : '<b>All 3 Na⁺ aboard, but no ATP.</b> The inside-open shape stays the deepest dip, so the pump waits.';
+    if(s2.P && inside) return 'Phosphate attached: the outside-open dip is now deeper. Waiting for the shaking to carry the pump over.';
+    if(s2.P && !inside && s2.naB>0) return 'Open to the outside: its grip on sodium is weak, so the Na⁺ drift away.';
+    if(s2.P && !inside) return `Open to the outside: waiting for potassium (<b>${s2.kB} of 2</b> aboard) before the phosphate can come off.`;
+    return 'Phosphate off: the inside-open dip is deeper again. Waiting for the shaking to carry the pump back.';
+  }
+
+  function drawPump(ctx,w,h){
+    ctx.clearRect(0,0,w,h);
+    const trayH = h*0.30, top = 0, pumpTop = trayH+10, ph = h - pumpTop;
+    // mini tray
+    drawTray(ctx, 12, 6, w-24, trayH-12, s2.P? -B : B, s2.x, true);
+    ctx.fillStyle=tok.muted; ctx.font='12px '+getComputedStyle(document.body).fontFamily; ctx.textAlign='center';
+    ctx.fillText(s2.P ? 'The tray right now: phosphate attached' : 'The tray right now: no phosphate', w/2, 22);
+    // cell
+    const memY = pumpTop + ph*0.42, memH = ph*0.2;
+    ctx.fillStyle=tok.bg; ctx.fillRect(0,pumpTop,w,ph);
+    ctx.fillStyle=tok.membrane; ctx.fillRect(0,memY,w,memH);
+    ctx.fillStyle=tok['membrane-edge']; ctx.fillRect(0,memY-2,w,3); ctx.fillRect(0,memY+memH-1,w,3);
+    ctx.fillStyle=tok.muted; ctx.font='12px '+getComputedStyle(document.body).fontFamily;
+    ctx.fillText('OUTSIDE the cell', 10, pumpTop+16); ctx.fillText('INSIDE the cell', 10, pumpTop+ph-8);
+    // free ions (background)
+    const ionR = Math.max(5, w*0.011);
+    function dots(list, y0, y1){
+      list.forEach(d=>{
+        d.u += (Math.random()-0.5)*0.004; d.v += (Math.random()-0.5)*0.006;
+        d.u = (d.u+1)%1; d.v=Math.max(0.05,Math.min(0.95,d.v));
+        const x = d.u*w; if(Math.abs(x-w/2)<w*0.13) return;
+        ctx.globalAlpha=0.55; ctx.beginPath(); ctx.arc(x, y0+(y1-y0)*d.v, ionR, 0, Math.PI*2);
+        ctx.fillStyle = d.kind==='na'?tok.na:tok.k; ctx.fill(); ctx.globalAlpha=1;
+      });
+    }
+    dots(free.outside, pumpTop+22, memY-8);
+    if(naOn.checked) dots(free.inside.filter(d=>d.kind==='na'), memY+memH+8, pumpTop+ph-18);
+    dots(free.inside.filter(d=>d.kind==='k'), memY+memH+8, pumpTop+ph-18);
+    // pump body
+    const pw = w*0.25, px = w/2 - pw/2, pt = memY - memH*0.9, pb = memY + memH*1.9, pH = pb-pt;
+    const q = Math.max(0,Math.min(1,(s2.x+0.6)/1.2)); const s = q*q*(3-2*q); // 0 = inside-open, 1 = outside-open
+    ctx.fillStyle=tok.pump; roundRect(ctx,px,pt,pw,pH,14); ctx.fill();
+    // pocket slides between open-bottom and open-top
+    const pkW = pw*0.52, pkH = pH*0.62, pkX = w/2-pkW/2;
+    const pkY = (pb - pkH + 4) + ( (pt-4) - (pb-pkH+4) )*s;
+    ctx.fillStyle=tok.pocket; roundRect(ctx,pkX,pkY,pkW,pkH,10); ctx.fill();
+    // bound ions
+    const cx=w/2, cy=pkY+pkH/2;
+    const bR = Math.min(pkW*0.24, 15);
+    const naPos=[[-0.25,-0.2],[0.25,-0.2],[0,0.22]], kPos=[[-0.25,0],[0.25,0]];
+    for(let i=0;i<s2.naB;i++) ion(ctx,cx+naPos[i][0]*pkW, cy+naPos[i][1]*pkH, bR, tok.na,'Na⁺');
+    for(let i=0;i<s2.kB;i++) ion(ctx,cx+kPos[i][0]*pkW, cy+kPos[i][1]*pkH, bR, tok.k,'K⁺');
+    // phosphate
+    if(s2.P){ ion(ctx, px+pw-8, pb-8, Math.max(11,ionR*1.7), tok.p, 'P', tok['p-edge'], '#3d2f05'); }
+    // flashes
+    s2.flash = s2.flash.filter(f=>f.t<1);
+    s2.flash.forEach(f=>{
+      const a=1-f.t; ctx.globalAlpha=a;
+      if(f.kind==='na') ion(ctx, cx + (f.t*80-40), pt - 10 - f.t*40, 12, tok.na, 'Na⁺');
+      if(f.kind==='k') ion(ctx, cx + (f.t*60-30), pb + 10 + f.t*40, 12, tok.k, 'K⁺');
+      if(f.kind==='adp'){ ctx.fillStyle=tok.ink; ctx.font='bold 13px '+getComputedStyle(document.body).fontFamily; ctx.textAlign='center'; ctx.fillText('ADP', px+pw+28+f.t*30, pb+18+f.t*20); }
+      if(f.kind==='pi') ion(ctx, px+pw+14+f.t*40, pb+10+f.t*30, ionR*1.5, tok.p, 'P', tok['p-edge'], '#3d2f05');
+      ctx.globalAlpha=1;
+    });
+  }
+  function roundRect(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+  function ion(ctx,x,y,r,fill,label,stroke,textColor){
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle=fill; ctx.fill();
+    if(stroke){ ctx.lineWidth=1.5; ctx.strokeStyle=stroke; ctx.stroke(); }
+    ctx.fillStyle=textColor||'#ffffff'; ctx.font='bold '+Math.round(r*0.95)+'px '+getComputedStyle(document.body).fontFamily;
+    ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(label,x,y+0.5); ctx.textBaseline='alphabetic';
+  }
+
+  // ---------- loop ----------
+  let last=performance.now();
+  const bIn=document.getElementById('bar-in'), bOut=document.getElementById('bar-out'), pIn=document.getElementById('pct-in'), pOut=document.getElementById('pct-out');
+  let uiT=0;
+  function frame(now){
+    const dt=Math.min(0.05,(now-last)/1000); last=now;
+    // sim 1
+    const t1 = s1.phos ? -B : B;
+    if(s1.world==='protein') stepProtein(s1, t1, kTfromSlider(+shake.value), 11*dt);
+    else stepEngine(s1, t1, 2.2*dt);
+    s1.fracIn += ((s1.x<0?1:0) - s1.fracIn)*Math.min(1,dt/4);
+    const a=fit(c1,0.56); a.ctx.clearRect(0,0,a.w,a.h); drawTray(a.ctx, 10, 10, a.w-20, a.h-20, t1, s1.x, true);
+    // sim 2
+    if(running){
+      const t2 = s2.P ? -B : B;
+      stepProtein(s2, t2, kTfromSlider(+shake2.value), 11*dt);
+      if(+shake2.value>0) chem(dt);
+      s2.flash.forEach(f=>f.t+=dt*1.2);
+    }
+    const b=fit(c2,0.7); drawPump(b.ctx,b.w,b.h);
+    uiT+=dt;
+    if(uiT>0.15){ uiT=0;
+      const fi=Math.round(s1.fracIn*100);
+      bIn.style.width=fi+'%'; bOut.style.width=(100-fi)+'%'; pIn.textContent=fi+'%'; pOut.textContent=(100-fi)+'%';
+      document.getElementById('n-atp').textContent=s2.atp; document.getElementById('n-na').textContent=s2.na; document.getElementById('n-k').textContent=s2.k;
+      const txt=statusText(); if(st.innerHTML!==txt) st.innerHTML=txt;
+    }
+    requestAnimationFrame(frame);
+  }
+  requestAnimationFrame(frame);
+})();
+</script>
+
+</body>
+</html>
