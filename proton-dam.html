@@ -1,0 +1,411 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>The Proton Dam</title>
+<meta name="description" content="BIO 101 Chapter 4 simulation: how the electron transport chain piles up protons and ATP synthase uses them to make ATP.">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Atkinson+Hyperlegible:ital,wght@0,400;0,700;1,400&family=IBM+Plex+Mono:wght@500&display=swap">
+<style>
+:root{
+  --bg:#f3f6f5; --panel:#ffffff; --ink:#1c2826; --muted:#56655f; --line:#d3ddd9;
+  --accent:#2f7d69; --accent-ink:#ffffff;
+  --protein:#3f8f7a; --protein-edge:#2c6b5b; --membrane:#eadfc8; --membrane-edge:#b3955b;
+  --hplus:#d23f6b; --elec:#2f73b5; --o2:#c0532a; --atp:#f2c14e; --atp-edge:#8a6d14; --atp-ink:#3d2f05;
+  --heat:#e07b39; --water:#5b8fc4; --ims:#fbe9ef; --matrix:#eef4f8; --truck:#ffffff;
+  --body:"Atkinson Hyperlegible", "Segoe UI", system-ui, sans-serif;
+  --mono:"IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+}
+@media (prefers-color-scheme: dark){
+  :root:not([data-theme="light"]){
+    color-scheme:dark;
+    --bg:#111917; --panel:#18221f; --ink:#e3ebe8; --muted:#9db0aa; --line:#2c3a36;
+    --accent:#5fbfa4; --accent-ink:#0d1513;
+    --protein:#4ea88e; --protein-edge:#8fd3bf; --membrane:#3b3427; --membrane-edge:#8d7747;
+    --hplus:#f06a93; --elec:#6fa8e0; --o2:#ef8a5e; --atp:#f2c14e; --atp-edge:#b8922a; --atp-ink:#3d2f05;
+    --heat:#f59a55; --water:#8fb8e3; --ims:#2a1d23; --matrix:#16222b; --truck:#18221f;
+  }
+}
+:root[data-theme="dark"]{
+  color-scheme:dark;
+  --bg:#111917; --panel:#18221f; --ink:#e3ebe8; --muted:#9db0aa; --line:#2c3a36;
+  --accent:#5fbfa4; --accent-ink:#0d1513;
+  --protein:#4ea88e; --protein-edge:#8fd3bf; --membrane:#3b3427; --membrane-edge:#8d7747;
+  --hplus:#f06a93; --elec:#6fa8e0; --o2:#ef8a5e; --atp:#f2c14e; --atp-edge:#b8922a; --atp-ink:#3d2f05;
+  --heat:#f59a55; --water:#8fb8e3; --ims:#2a1d23; --matrix:#16222b; --truck:#18221f;
+}
+*{box-sizing:border-box}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55;padding-inline:16px;padding-block:28px 48px}
+main{max-width:1020px;margin:0 auto;display:flex;flex-direction:column;gap:28px}
+h1{font-size:2.1rem;line-height:1.15;margin:0;text-wrap:balance}
+h2{font-size:1.35rem;margin:0;text-wrap:balance}
+p{margin:0;max-width:66ch}
+.lead{color:var(--muted);font-size:1.05rem}
+header{display:flex;flex-direction:column;gap:10px}
+.eyebrow{font-size:.78rem;letter-spacing:.08em;text-transform:uppercase;color:var(--accent);font-weight:700}
+section{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;display:flex;flex-direction:column;gap:16px}
+.cols{display:grid;grid-template-columns:minmax(0,1.55fr) minmax(0,1fr);gap:22px;align-items:start}
+@media (max-width:800px){.cols{grid-template-columns:1fr}.stage .status{margin-top:8px;font-size:.9rem;min-height:0}.stage{position:sticky;top:0;z-index:2;background:var(--panel);padding-block:6px;margin-block:-6px}}
+canvas{display:block;width:100%;height:auto;border-radius:10px;background:var(--bg)}
+.legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-size:.9rem;color:var(--muted);margin-top:10px}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.legend i{display:inline-block;width:13px;height:13px;border-radius:50%}
+.legend i.pill{width:24px;border-radius:6px}
+.controls{display:flex;flex-direction:column;gap:14px}
+.row{display:flex;flex-wrap:wrap;gap:8px;align-items:center}
+.seg{display:inline-flex;border:1px solid var(--line);border-radius:999px;padding:3px;gap:3px;background:var(--bg)}
+.seg button{border:0;background:transparent;color:var(--ink);font:inherit;font-size:.92rem;padding:6px 14px;border-radius:999px;cursor:pointer}
+.seg button[aria-pressed="true"]{background:var(--accent);color:var(--accent-ink);font-weight:700}
+.grp{display:flex;flex-direction:column;gap:6px}
+.grp > small{color:var(--muted);font-size:.8rem;letter-spacing:.04em;text-transform:uppercase}
+.btn{font:inherit;font-size:.95rem;border:1px solid var(--accent);background:transparent;color:var(--accent);padding:7px 14px;border-radius:8px;cursor:pointer;font-weight:700}
+.btn:hover{filter:brightness(1.08)}
+button:focus-visible,input:focus-visible{outline:3px solid var(--atp);outline-offset:2px}
+.toggle{display:flex;align-items:center;gap:8px;font-size:.95rem;cursor:pointer}
+.toggle input{width:18px;height:18px;accent-color:var(--accent);flex:none}
+.status{border-left:4px solid var(--accent);padding:8px 12px;background:var(--bg);border-radius:0 8px 8px 0;font-size:.98rem;min-height:5.4em}
+.bars{display:flex;flex-direction:column;gap:7px;font-size:.9rem}
+.bar{display:grid;grid-template-columns:9.6em 1fr 2.6em;align-items:center;gap:8px}
+.bar .track{height:12px;border-radius:6px;background:var(--bg);border:1px solid var(--line);overflow:hidden}
+.bar .fill{height:100%;width:0;transition:width .25s linear}
+.bar b{font-family:var(--mono);font-weight:500;text-align:right;font-variant-numeric:tabular-nums}
+.fine{font-size:.82rem;color:var(--muted)}
+.try{margin:0;padding-left:1.2em;display:flex;flex-direction:column;gap:8px;max-width:70ch}
+.try li::marker{color:var(--accent);font-weight:700}
+.takeaway{border-top:1px solid var(--line);padding-top:14px}
+</style>
+</head>
+<body>
+<main>
+  <header>
+    <span class="eyebrow">BIO 101 · Chapter 4 · Stage 3 of aerobic respiration</span>
+    <h1>The proton dam</h1>
+    <p class="lead">The electron transport chain doesn't make ATP itself. It uses the energy of falling electrons to pump protons (H⁺) across the inner membrane of the mitochondrion, piling them up like water behind a dam. ATP synthase makes ATP as the protons flow back through it.</p>
+  </header>
+
+  <section aria-labelledby="s1">
+    <h2 id="s1">Run the mitochondrion</h2>
+    <div class="cols">
+      <div class="stage">
+        <canvas id="c" width="600" height="470" role="img" aria-label="A strip of inner mitochondrial membrane. On the left, three chain proteins pass electrons toward oxygen and pump protons up into the space between the membranes. On the right, protons flow back down through ATP synthase, turning its wheel and making ATP. The status box beside the picture describes what is happening."></canvas>
+        <div class="legend" id="legend" aria-hidden="true">
+          <span><i style="background:var(--hplus)"></i>H⁺ (proton)</span>
+          <span><i style="background:var(--elec)"></i>e⁻ (electron)</span>
+          <span><i style="background:var(--o2)"></i>O₂</span>
+          <span><i class="pill" style="background:var(--atp)"></i>ATP</span>
+          <span><svg width="16" height="16" viewBox="0 0 16 16" aria-hidden="true"><path d="M5 2c3 3-3 5 0 8s-3 4 0 5M11 2c3 3-3 5 0 8s-3 4 0 5" fill="none" stroke="var(--heat)" stroke-width="2" stroke-linecap="round"/></svg>heat</span>
+          <span><i class="pill" style="background:var(--membrane);border:1px solid var(--membrane-edge)"></i>membrane</span>
+        </div>
+      </div>
+      <div class="controls">
+        <div class="status" id="status" aria-live="polite">Starting…</div>
+        <div class="grp">
+          <small>What the cell is doing</small>
+          <div class="seg" role="group" aria-label="The cell's ATP use">
+            <button type="button" id="rest" aria-pressed="true">Resting</button>
+            <button type="button" id="work" aria-pressed="false">Working hard</button>
+          </div>
+        </div>
+        <div class="grp">
+          <small>Change a condition</small>
+          <label class="toggle"><input type="checkbox" id="fuel" checked> Fuel: loaded NADH arriving</label>
+          <label class="toggle"><input type="checkbox" id="ox" checked> Oxygen reaching the mitochondrion</label>
+          <label class="toggle"><input type="checkbox" id="leak"> Leaky inner membrane (a big leak)</label>
+        </div>
+        <div class="bars">
+          <div class="bar"><span>Proton pile</span><div class="track"><div class="fill" id="b-pile" style="background:var(--hplus)"></div></div><b id="v-pile">0</b></div>
+          <div class="bar"><span>Electron flow (O₂ use)</span><div class="track"><div class="fill" id="b-flow" style="background:var(--elec)"></div></div><b id="v-flow">0</b></div>
+          <div class="bar"><span>ATP made</span><div class="track"><div class="fill" id="b-made" style="background:var(--atp)"></div></div><b id="v-made">0</b></div>
+          <div class="bar"><span>Heat from leaks</span><div class="track"><div class="fill" id="b-heat" style="background:var(--heat)"></div></div><b id="v-heat">0</b></div>
+          <div class="bar"><span>ATP on hand</span><div class="track"><div class="fill" id="b-stock" style="background:var(--atp-edge)"></div></div><b id="v-stock">0</b></div>
+        </div>
+        <p class="fine">Numbers are on a 0–100 scale for comparing, not real units. <span id="wheel-note"></span></p>
+        <div class="row">
+          <button type="button" class="btn" id="pause" aria-pressed="false">Pause</button>
+          <button type="button" class="btn" id="reset">Start over</button>
+        </div>
+      </div>
+    </div>
+    <h2>Try this. Predict first, then test.</h2>
+    <ol class="try">
+      <li>Let it run at <b>Resting</b> until the bars settle. Before you click <b>Working hard</b>, predict whether each bar will go up, go down or stay about the same. Then test it. Did the chain's speed change? If so, what changed it, since nothing about the chain itself was touched?</li>
+      <li>Go back to <b>Resting</b> and turn off <b>Oxygen</b>. What happens first, second and third? Where do the NADH trucks end up?</li>
+      <li>Turn oxygen back on and turn off <b>Fuel</b>. How is the result like having no oxygen, and how is it different?</li>
+      <li>Section 4.5 asks what would happen if the inner membrane sprang a leak. Write down your prediction for oxygen use, ATP made and heat. Then turn on <b>Leaky inner membrane</b> and compare.</li>
+    </ol>
+    <p class="takeaway"><b>The takeaway:</b> the chain builds a pile of protons, and ATP synthase makes ATP as they flow back. Protons flow back through ATP synthase only as fast as the cell spends ATP, and the chain slows when the pile is high. So the pile links how fast your cells use oxygen to how fast they spend ATP. That is why your cells use more oxygen when you work harder.</p>
+    <p class="fine">This model is simplified. A real chain has more parts than the three drawn here: four large protein complexes plus small carriers that shuttle electrons between them. The energy from each NADH pumps about ten protons, and ATP synthase uses a few protons for each ATP.</p>
+  </section>
+</main>
+
+<script>
+(function(){
+  "use strict";
+  const reduce = window.matchMedia && matchMedia('(prefers-reduced-motion: reduce)').matches;
+  const tok = {};
+  const names = ['bg','panel','ink','muted','line','accent','protein','protein-edge','membrane','membrane-edge','hplus','elec','o2','atp','atp-edge','atp-ink','heat','water','ims','matrix','truck'];
+  function readTokens(){ const cs=getComputedStyle(document.documentElement); names.forEach(n=>tok[n]=cs.getPropertyValue('--'+n).trim()); }
+  readTokens();
+  try{ matchMedia('(prefers-color-scheme: dark)').addEventListener('change',readTokens); }catch(e){}
+  new MutationObserver(readTokens).observe(document.documentElement,{attributes:true,attributeFilter:['data-theme']});
+  const FONT = ()=> getComputedStyle(document.body).fontFamily;
+
+  // on narrow screens the canvas sticks to the top; keep the status with it and move the legend out
+  (function(){
+    const mq=matchMedia('(max-width:800px)'), stage=document.querySelector('.stage'), controls=document.querySelector('.controls');
+    const status=document.getElementById('status'), legend=document.getElementById('legend');
+    function place(){
+      if(mq.matches){ stage.appendChild(status); controls.appendChild(legend); }
+      else { controls.insertBefore(status, controls.firstChild); stage.appendChild(legend); }
+    }
+    place(); try{ mq.addEventListener('change',place); }catch(e){ mq.addListener(place); }
+  })();
+
+  // ---------------- model ----------------
+  // g: how high the proton pile is (0-1). T: fraction of the cell's ATP+ADP that is ATP.
+  const P = {Emax:5, N:60, Smax:150, g0:0.2, Lnorm:0.4, Lleak:6, M:20, Urest:0.6, Uwork:2.2, speed:1.5};
+  const ctl = {fuel:true, ox:true, leak:false, work:false};
+  let S, R;
+  function resetModel(){ S = {g:0.86, T:0.95, atpAcc:0}; R = {re:0,rs:0,rl:0,U:0}; }
+  resetModel();
+  function step(dt){
+    const re = P.Emax*(ctl.fuel?1:0)*(ctl.ox?1:0)*Math.max(0,1-S.g);               // electron pairs per unit time
+    const rs = P.Smax*(1-S.T)*Math.max(0,(S.g-P.g0)/(1-P.g0));                    // protons through ATP synthase
+    const rl = (ctl.leak?P.Lleak:P.Lnorm)*S.g;                                     // protons leaking back
+    const U  = (ctl.work?P.Uwork:P.Urest)*Math.min(1,S.T/0.08);                   // ATP spent by the cell
+    S.g = Math.min(1,Math.max(0,S.g + (3*re - rs - rl)/P.N*dt));
+    S.T = Math.min(1,Math.max(0,S.T + (rs/3 - U)/P.M*dt));
+    R = {re,rs,rl,U};
+  }
+
+  // ---------------- controls ----------------
+  const $ = id=>document.getElementById(id);
+  const restB=$('rest'), workB=$('work');
+  function setWork(w){ ctl.work=w; restB.setAttribute('aria-pressed',String(!w)); workB.setAttribute('aria-pressed',String(w)); }
+  restB.onclick=()=>setWork(false); workB.onclick=()=>setWork(true);
+  $('fuel').onchange=e=>ctl.fuel=e.target.checked;
+  $('ox').onchange=e=>ctl.ox=e.target.checked;
+  $('leak').onchange=e=>ctl.leak=e.target.checked;
+  let running = !reduce;
+  const pauseB=$('pause');
+  function setRun(r){ running=r; pauseB.textContent=r?'Pause':'Play'; pauseB.setAttribute('aria-pressed',String(!r)); }
+  pauseB.onclick=()=>setRun(!running); setRun(running);
+  $('reset').onclick=()=>{ resetModel(); setWork(false); ['fuel','ox'].forEach(k=>{$(k).checked=true;ctl[k]=true;}); $('leak').checked=false; ctl.leak=false; clearVisuals(); };
+
+  // ---------------- layout (logical 600 x 470) ----------------
+  const W=600, H=470;
+  const memTop=178, memBot=232, memMid=(memTop+memBot)/2;
+  const chainX=[128,218,308], protW=56, protTop=memTop-16, protBot=memBot+16;
+  const o2 = {x:346, y:272};
+  const leakX=[410,442];
+  const syn = {x:530, chanW:40, wheelY:318, r:40};
+  const truckSlots=[[128,272],[98,304],[68,336],[38,368],[38,402]];
+
+  // ---------------- visuals ----------------
+  let pile, flights, pairs, pops, trucks, leaving, spin, pairQueue;
+  function clearVisuals(){
+    pile=[]; for(let i=0;i<P.N;i++) pile.push({x:14+Math.random()*(W-28), y:50+Math.random()*(memTop-64), vx:0, vy:0});
+    flights=[]; pairs=[]; pops=[]; leaving=[]; spin=0; pairQueue=0;
+    trucks=0;
+  }
+  clearVisuals();
+  const chance=(rate,dt)=>Math.random()<1-Math.exp(-rate*dt);
+
+  function spawnVisuals(dt){
+    // NADH trucks: how many wait at the chain depends on how jammed it is
+    const jammed = !ctl.ox;   // electrons can't leave the chain, so loaded trucks pile up
+    const want = jammed ? truckSlots.length : 2;
+    if(ctl.fuel && trucks<want && chance(jammed?1.2:3,dt)) trucks++;   // with no fuel, no trucks come
+    // electron pairs leave the front truck at the chain's current speed
+    pairQueue += R.re*dt*0.6;
+    if(pairQueue>=1 && trucks>0 && pairs.length<4){
+      pairQueue -= 1; trucks--;
+      pairs.push({t:0, pumped:[false,false,false]});
+      leaving.push({t:0});                       // NAD+ drives away empty
+      flights.push({kind:'hm', x:truckSlots[0][0]+22, y:truckSlots[0][1]+6, t:0}); // NADH's extra H+ joins the matrix
+    }
+    if(pairQueue>3) pairQueue=3;
+    // protons back through ATP synthase and through leaks
+    if(chance(R.rs*0.55,dt)) flights.push({kind:'syn', t:0});
+    if(chance(R.rl*0.55,dt)){ const lx = ctl.leak ? leakX[Math.random()<.5?0:1] : 370+Math.random()*120; flights.push({kind:'leak', x:lx, t:0}); }
+    // wheel spin and ATP made
+    spin += R.rs*dt*0.55*(Math.PI*2/9);
+    S.atpAcc += R.rs*dt*0.55/3;
+    while(S.atpAcc>=1){ S.atpAcc-=1; pops.push({kind:'atp', t:0, dx:(Math.random()-.5)*20}); }
+  }
+
+  function advance(dt){
+    // electron pairs travel: truck -> protein 1 -> 2 -> 3 -> oxygen
+    pairs.forEach(p=>{
+      const stalled = !ctl.ox || R.re < 0.05;
+      p.t += dt*(stalled ? 0.0 : 0.9);
+      for(let i=0;i<3;i++){
+        if(!p.pumped[i] && p.t > 0.25 + i*0.25){ p.pumped[i]=true; flights.push({kind:'pump', x:chainX[i], t:0}); }
+      }
+      if(p.t>=1.05 && !p.done){ p.done=true; pops.push({kind:'water', t:0}); flights.push({kind:'hw', dx:-44, t:0}); flights.push({kind:'hw', dx:44, t:0}); }
+    });
+    pairs = pairs.filter(p=>!p.done);
+    flights.forEach(f=>f.t+=dt*(f.kind==='hm'?0.7:f.kind==='hw'?2.2:1.3));
+    flights = flights.filter(f=>f.t<1);
+    pops.forEach(p=>p.t+=dt*0.55); pops=pops.filter(p=>p.t<1);
+    leaving.forEach(l=>l.t+=dt*0.6); leaving=leaving.filter(l=>l.t<1);
+    // pile dots jiggle
+    pile.forEach(d=>{ d.x+= (Math.random()-.5)*1.6; d.y+=(Math.random()-.5)*1.6;
+      if(d.x<12)d.x=12; if(d.x>W-12)d.x=W-12; if(d.y<46)d.y=46; if(d.y>memTop-12)d.y=memTop-12; });
+  }
+
+  // ---------------- drawing ----------------
+  const c=$('c'); let K=1;
+  function fit(){
+    const dpr=Math.min(window.devicePixelRatio||1,2);
+    const cw=c.clientWidth||W, ch=Math.round(cw*H/W);
+    if(c.width!==Math.round(cw*dpr)){ c.width=Math.round(cw*dpr); c.height=Math.round(ch*dpr); }
+    K=Math.max(1,Math.min(1.7,560/cw));
+    const ctx=c.getContext('2d'); ctx.setTransform(dpr*cw/W,0,0,dpr*cw/W,0,0); return ctx;
+  }
+  function rr(ctx,x,y,w,h,r){ ctx.beginPath(); ctx.moveTo(x+r,y); ctx.arcTo(x+w,y,x+w,y+h,r); ctx.arcTo(x+w,y+h,x,y+h,r); ctx.arcTo(x,y+h,x,y,r); ctx.arcTo(x,y,x+w,y,r); ctx.closePath(); }
+  function dot(ctx,x,y,r,fill,label,ink){
+    ctx.beginPath(); ctx.arc(x,y,r,0,Math.PI*2); ctx.fillStyle=fill; ctx.fill();
+    if(label){ ctx.fillStyle=ink||'#fff'; ctx.font='700 '+Math.round(r*1.05)+'px '+FONT(); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(label,x,y+0.5); ctx.textBaseline='alphabetic'; }
+  }
+  function tag(ctx,text,x,y,opts){
+    opts=opts||{}; const fs=(opts.size||15)*K; ctx.font=(opts.weight||'700')+' '+fs+'px '+FONT();
+    const w=ctx.measureText(text).width+12, h=fs+8;
+    const ax = opts.align==='left'? x : opts.align==='right'? x-w : x-w/2;
+    ctx.globalAlpha=0.88; ctx.fillStyle=opts.bg||tok.panel; rr(ctx,ax,y-h/2,w,h,6); ctx.fill(); ctx.globalAlpha=1;
+    ctx.fillStyle=opts.color||tok.muted; ctx.textAlign='left'; ctx.textBaseline='middle'; ctx.fillText(text,ax+6,y+1); ctx.textBaseline='alphabetic';
+  }
+  function pill(ctx,x,y,w,h,fill,stroke,text,ink,alpha){
+    ctx.globalAlpha=alpha==null?1:alpha; const k=Math.min(K,1.4); w*=k; h*=k; rr(ctx,x-w/2,y-h/2,w,h,h/2); ctx.fillStyle=fill; ctx.fill();
+    if(stroke){ ctx.lineWidth=2; ctx.strokeStyle=stroke; ctx.stroke(); }
+    ctx.fillStyle=ink; ctx.font='700 '+(13*k)+'px '+FONT(); ctx.textAlign='center'; ctx.textBaseline='middle'; ctx.fillText(text,x,y+1); ctx.textBaseline='alphabetic'; ctx.globalAlpha=1;
+  }
+  const ease = t=>t<.5?2*t*t:1-Math.pow(-2*t+2,2)/2;
+
+  function draw(){
+    const ctx=fit(); ctx.clearRect(0,0,W,H);
+    // compartments
+    ctx.fillStyle=tok.ims; ctx.fillRect(0,0,W,memTop);
+    ctx.globalAlpha=0.10+0.30*S.g; ctx.fillStyle=tok.hplus; ctx.fillRect(0,0,W,memTop); ctx.globalAlpha=1;
+    ctx.fillStyle=tok.matrix; ctx.fillRect(0,memBot,W,H-memBot);
+    // outer membrane (thin strip at the top) and inner membrane
+    ctx.fillStyle=tok.membrane; ctx.fillRect(0,0,W,9); ctx.fillStyle=tok['membrane-edge']; ctx.fillRect(0,8,W,2);
+    ctx.fillStyle=tok.membrane; ctx.fillRect(0,memTop,W,memBot-memTop);
+    ctx.fillStyle=tok['membrane-edge']; ctx.fillRect(0,memTop-2,W,3); ctx.fillRect(0,memBot-1,W,3);
+    if(ctl.leak){ leakX.forEach(x=>{ ctx.fillStyle=tok.matrix; ctx.fillRect(x-6,memTop-2,12,memBot-memTop+4); ctx.setLineDash([4,4]); ctx.strokeStyle=tok['membrane-edge']; ctx.lineWidth=1.5; ctx.strokeRect(x-6,memTop-2,12,memBot-memTop+4); ctx.setLineDash([]); }); }
+    // proton pile
+    const n=Math.round(S.g*P.N);
+    for(let i=0;i<n;i++) dot(ctx,pile[i].x,pile[i].y,7,tok.hplus);
+    // chain proteins
+    chainX.forEach(x=>{ ctx.fillStyle=tok.protein; rr(ctx,x-protW/2,protTop,protW,protBot-protTop,12); ctx.fill(); });
+    // electron path hint
+    ctx.strokeStyle=tok.elec; ctx.globalAlpha=0.35; ctx.lineWidth=2; ctx.setLineDash([3,5]);
+    ctx.beginPath(); ctx.moveTo(truckSlots[0][0],truckSlots[0][1]-14); ctx.lineTo(chainX[0],memMid); ctx.lineTo(chainX[2],memMid); ctx.lineTo(o2.x,o2.y-14); ctx.stroke(); ctx.setLineDash([]); ctx.globalAlpha=1;
+    // ATP synthase: channel, stalk, wheel
+    ctx.fillStyle=tok.protein; rr(ctx,syn.x-syn.chanW/2,protTop,syn.chanW,protBot-protTop,10); ctx.fill();
+    ctx.fillStyle=tok.ims; ctx.fillRect(syn.x-5,protTop+4,10,protBot-protTop-8);
+    ctx.fillStyle=tok['protein-edge']; ctx.fillRect(syn.x-4,protBot-2,8,syn.wheelY-syn.r-protBot+6);
+    ctx.save(); ctx.translate(syn.x,syn.wheelY); ctx.rotate(spin);
+    ctx.beginPath(); ctx.arc(0,0,syn.r,0,Math.PI*2); ctx.fillStyle=tok.protein; ctx.fill();
+    for(let k=0;k<9;k++){ const a=k*Math.PI*2/9; ctx.save(); ctx.rotate(a); ctx.fillStyle=tok['protein-edge']; rr(ctx,-4,-syn.r-6,8,16,3); ctx.fill(); ctx.restore(); }
+    ctx.beginPath(); ctx.arc(0,0,syn.r*0.42,0,Math.PI*2); ctx.fillStyle=tok.matrix; ctx.fill();
+    ctx.strokeStyle=tok['protein-edge']; ctx.lineWidth=4; ctx.beginPath(); ctx.moveTo(0,0); ctx.lineTo(0,-syn.r*0.42); ctx.stroke();
+    ctx.restore();
+    // oxygen site
+    if(ctl.ox){ dot(ctx,o2.x-7,o2.y,9,tok.o2); dot(ctx,o2.x+7,o2.y,9,tok.o2); ctx.fillStyle=tok.ink; ctx.font='700 '+(13*K)+'px '+FONT(); ctx.textAlign='left'; ctx.fillText('O₂',o2.x+20,o2.y+5*K); }
+    else { ctx.setLineDash([3,3]); ctx.strokeStyle=tok.o2; ctx.lineWidth=1.5; ctx.beginPath(); ctx.arc(o2.x,o2.y,13,0,Math.PI*2); ctx.stroke(); ctx.setLineDash([]); ctx.fillStyle=tok.o2; ctx.font='700 '+(13*K)+'px '+FONT(); ctx.textAlign='left'; ctx.fillText('no O₂',o2.x+18,o2.y+5*K); }
+    // NADH trucks waiting
+    for(let i=0;i<Math.min(trucks,truckSlots.length);i++){ const [x,y]=truckSlots[i]; pill(ctx,x,y,52,22,tok.truck,tok.elec,'NADH',tok.elec); dot(ctx,x-9,y-14,4,tok.elec); dot(ctx,x+9,y-14,4,tok.elec); }
+    // empty NAD+ leaving
+    leaving.forEach(l=>{ const t=ease(l.t); pill(ctx,truckSlots[0][0]+40+t*90,truckSlots[0][1]+30+t*90,50,22,tok.truck,tok.muted,'NAD⁺',tok.muted,1-l.t); });
+    // electron pairs moving along the chain
+    const path=[[truckSlots[0][0],truckSlots[0][1]-14],[chainX[0],memMid],[chainX[1],memMid],[chainX[2],memMid],[o2.x,o2.y-12]];
+    pairs.forEach(p=>{
+      const u=Math.min(1,p.t)*(path.length-1), i=Math.min(path.length-2,Math.floor(u)), f=u-i;
+      const x=path[i][0]+(path[i+1][0]-path[i][0])*f, y=path[i][1]+(path[i+1][1]-path[i][1])*f;
+      dot(ctx,x-5,y,5.5,tok.elec); dot(ctx,x+5,y,5.5,tok.elec);
+    });
+    // proton flights
+    flights.forEach(f=>{
+      const t=ease(f.t);
+      if(f.kind==='pump'){ const y=memBot+34-(memBot+34-(memTop-40))*t; ctx.globalAlpha=1-Math.max(0,f.t-0.8)*5; dot(ctx,f.x+14,y,7,tok.hplus); ctx.globalAlpha=1; }
+      if(f.kind==='syn'){ const y=(memTop-40)+((syn.wheelY-8)-(memTop-40))*t; ctx.globalAlpha=1-Math.max(0,f.t-0.8)*5; dot(ctx,syn.x,y,6.5,tok.hplus); ctx.globalAlpha=1; }
+      if(f.kind==='leak'){ const y=(memTop-30)+((memBot+40)-(memTop-30))*t; ctx.globalAlpha=1-Math.max(0,f.t-0.7)*3.3; dot(ctx,f.x,y,6.5,tok.hplus);
+        if(f.t>0.55){ ctx.strokeStyle=tok.heat; ctx.lineWidth=2.5; for(let k=-1;k<=1;k++){ ctx.beginPath(); const bx=f.x+k*10, by=memBot+44+(f.t-0.55)*40; ctx.moveTo(bx,by); ctx.quadraticCurveTo(bx+5,by+5,bx,by+10); ctx.quadraticCurveTo(bx-5,by+15,bx,by+20); ctx.stroke(); } }
+        ctx.globalAlpha=1; }
+      if(f.kind==='hw'){ const t2=ease(f.t); dot(ctx,o2.x+f.dx*(1-t2),o2.y+36*(1-t2),5.5,tok.hplus); }
+      if(f.kind==='hm'){ ctx.globalAlpha=0.9*(1-f.t); dot(ctx,f.x+f.t*20,f.y+f.t*40,5.5,tok.hplus); ctx.globalAlpha=1; }
+    });
+    // products
+    pops.forEach(p=>{
+      const t=ease(p.t);
+      if(p.kind==='atp') pill(ctx,syn.x+p.dx+t*20,syn.wheelY+syn.r+16+t*36,44,20,tok.atp,tok['atp-edge'],'ATP',tok['atp-ink'],1-Math.max(0,p.t-0.6)*2.5);
+      if(p.kind==='water'){ ctx.globalAlpha=1-p.t; ctx.fillStyle=tok.water; ctx.font='700 '+(14*K)+'px '+FONT(); ctx.textAlign='center'; ctx.fillText('H₂O',o2.x,o2.y+30+t*50); ctx.globalAlpha=1; }
+    });
+    // labels
+    tag(ctx,'Space between the membranes',10,28,{align:'left'});
+    tag(ctx,'outer membrane',W-10,20,{align:'right',size:12,weight:'400',bg:tok.membrane});
+    tag(ctx,'Matrix (inside)',10,H-16,{align:'left',size:14});
+    tag(ctx,'Electron transport chain',chainX[1],protTop-16,{size:14});
+    tag(ctx,'ATP synthase',W-10,H-16,{size:14,align:'right'});
+    if(!ctl.ox && ctl.fuel && trucks>=3) tag(ctx,'Trucks stuck: nowhere to unload',176,392,{size:13,weight:'400',align:'left',color:tok.elec});
+    if(!ctl.fuel && trucks===0) tag(ctx,'no fuel arriving',96,312,{size:13,weight:'400'});
+  }
+
+  // ---------------- status and readouts ----------------
+  function statusText(){
+    if(!ctl.fuel){
+      return S.g>0.3 || S.T>0.1
+        ? '<b>No fuel.</b> No loaded NADH arrives, so no electrons enter the chain and the pumps stop. ATP synthase runs only until the pile drains.'
+        : '<b>No fuel.</b> The pile is too low to turn the wheel, so ATP synthase has stopped.';
+    }
+    if(!ctl.ox){
+      return S.g>0.3
+        ? '<b>No oxygen.</b> Electrons have nowhere to go at the end of the chain, so they back up and the pumps stop. ATP synthase keeps turning only until the pile drains.'
+        : '<b>No oxygen.</b> The pile is too low to turn the wheel, so ATP synthase has stopped. This model shows only the mitochondrion; in a real cell, glycolysis, kept going by fermentation, would still make a little ATP.';
+    }
+    if(ctl.leak){
+      return '<b>Leaky membrane.</b> Many protons slip back without turning the wheel, and their energy becomes heat. The pile drops, so the pumps push against less and the chain speeds up. The cell uses more fuel and oxygen to make the same ATP.';
+    }
+    if(ctl.work){
+      return '<b>Working hard.</b> The cell spends ATP fast, so plenty of ADP is waiting and ATP synthase spins quickly. The pile drops, the pumps push against less, and electrons flow faster: oxygen use goes up.';
+    }
+    return '<b>Resting.</b> The cell needs little ATP, so little ADP is waiting and ATP synthase slows. Protons pile up high, and the pumps must push against that pile. The chain slows, and so does oxygen use.';
+  }
+  const sm={flow:0,made:0,heat:0};
+  function readouts(dt){
+    const k=Math.min(1,dt/0.8);
+    sm.flow += (R.re/3.5 - sm.flow)*k;
+    sm.made += ((R.rs/3)/2.6 - sm.made)*k;
+    sm.heat += (R.rl/4.2 - sm.heat)*k;
+    const set=(id,v)=>{ v=Math.max(0,Math.min(1,v)); $('b-'+id).style.width=(v*100).toFixed(0)+'%'; $('v-'+id).textContent=Math.round(v*100); };
+    set('pile',S.g); set('flow',sm.flow); set('made',sm.made); set('heat',sm.heat); set('stock',S.T);
+    const tot=R.rs+R.rl;
+    $('wheel-note').textContent = tot>0.05 ? 'Of the protons flowing back right now, '+Math.round(100*R.rs/tot)+'% turn the wheel; the rest leak.' : '';
+    const t=statusText(); const st=$('status'); if(st.innerHTML!==t) st.innerHTML=t;
+  }
+
+  // ---------------- loop ----------------
+  let last=performance.now(), uiT=1;
+  function frame(now){
+    const dt=Math.min(0.05,(now-last)/1000); last=now;
+    if(running){
+      const sdt=dt*P.speed;
+      for(let i=0;i<5;i++) step(sdt/5);
+      spawnVisuals(sdt); advance(sdt);
+    }
+    draw();
+    uiT+=dt; if(uiT>0.2){ readouts(uiT); uiT=0; }
+    requestAnimationFrame(frame);
+  }
+  // settle to a resting steady state before showing anything
+  for(let i=0;i<4000;i++) step(0.02);
+  readouts(10);
+  requestAnimationFrame(frame);
+  window.__sim = {get S(){return S;}, get R(){return R;}, ctl, P};
+})();
+</script>
+</body>
+</html>
